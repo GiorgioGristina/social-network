@@ -10,14 +10,7 @@ class PostRepository
       sql = 'SELECT * FROM posts'
       result = DatabaseConnection.exec_params(sql, [])
       result.each do |record|
-        p record
-        post = Post.new
-        post.id = record['id'].to_i
-        post.title = record['title']
-        post.content = record['content']
-        post.number_of_views = record['number_of_views'].to_i
-        post.account_id = record['account_id'].to_i
-        posts << post
+        posts << post_object(record)
       end
       return posts
       # Returns an array of posts objects.
@@ -27,19 +20,35 @@ class PostRepository
     # One argument: the id (number)
     def find(id)
       # Executes the SQL query:
-      # SELECT id, name, cohort_name FROM postss WHERE id = $1;
-  
-      # Returns a single posts object.
+      # SELECT * FROM posts WHERE id = $1;
+        sql = 'SELECT * FROM posts WHERE id = $1'
+        params = [id]
+        data = DatabaseConnection.exec_params(sql, params)[0]
+        post_object(data)
     end
   
-    # Add more methods below for each operation you'd like to implement.
+    def create(post)
+        sql = 'INSERT INTO posts(title, content, number_of_views, account_id) VALUES($1, $2, $3, $4);'
+        params = [post.title, post.content, post.number_of_views, post.account_id]
+        DatabaseConnection.exec_params(sql, params)
+        return nil
+    end
   
-    # def create(student)
-    # end
-  
-    # def update(student)
-    # end
-  
-    # def delete(student)
-    # end
+    def delete(id)
+        sql = 'DELETE FROM posts WHERE id = $1;'
+        params = [id]
+        DatabaseConnection.exec_params(sql, params)
+    end
+
+    private
+
+    def post_object(hash)
+        post = Post.new
+        post.id = hash['id'].to_i
+        post.title = hash['title']
+        post.content = hash['content']
+        post.number_of_views = hash['number_of_views'].to_i
+        post.account_id = hash['account_id'].to_i
+        return post
+    end
   end

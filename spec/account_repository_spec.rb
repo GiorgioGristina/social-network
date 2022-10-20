@@ -60,15 +60,17 @@ RSpec.describe AccountRepository do
     it "it will delete the record with id 1" do
                 
         repo = AccountRepository.new
+        expect(repo.all.length).to eq(2)
+        obj1 = repo.all[0]
+        obj2 = repo.all[1]
 
-        repo.delete(1)
-        
-        accounts = repo.all
-        
-        accounts.length #=> 2
-       
+      
+        repo.delete(obj1.id)
 
-        expect(accounts.length).to eq(1)
+        expect(repo.all.length).to eq(1)
+        
+
+        
        
 
     end

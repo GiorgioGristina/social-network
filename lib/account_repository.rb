@@ -7,11 +7,7 @@ class AccountRepository
         sql = 'SELECT * FROM accounts;'
         data = DatabaseConnection.exec_params(sql, [])
         data.each do |record|
-            account = Account.new
-            account.email_address = record['email_address']
-            account.username = record['username']
-            account.id = record['id'].to_i
-            accounts << account
+            accounts << account_object(record)
         end
         return accounts
     end
@@ -20,12 +16,7 @@ class AccountRepository
         sql = 'SELECT * FROM accounts WHERE id = $1;'
         params = [id]
         data = DatabaseConnection.exec_params(sql, params)[0]
-        account = Account.new
-        account.email_address = data['email_address']
-        account.username = data['username']
-        account.id = data['id'].to_i
-        
-        return account
+        return account_object(data)
     end
 
     def create(account)
@@ -39,7 +30,16 @@ class AccountRepository
         sql = 'DELETE FROM accounts WHERE id = $1'
         params = [id]
         DatabaseConnection.exec_params(sql, params)
-
         return nil
+    end
+
+    private
+
+    def account_object(hash)
+        account = Account.new
+        account.email_address = hash['email_address']
+        account.username = hash['username']
+        account.id = hash['id'].to_i
+        return account
     end
 end

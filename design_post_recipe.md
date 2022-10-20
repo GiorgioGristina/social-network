@@ -126,21 +126,25 @@ class PostRepository
   # One argument: the id (number)
   def find(id)
     # Executes the SQL query:
-    # SELECT id, name, cohort_name FROM postss WHERE id = $1;
+    # SELECT * FROM posts WHERE id = $1;
 
     # Returns a single posts object.
   end
 
   # Add more methods below for each operation you'd like to implement.
 
-  # def create(student)
-  # end
+  def create(post)
+    # ' INSERT INTO posts VALUES($1, $2, $3, $4);'
+    #return nothing just add a new record
+ end
 
   # def update(student)
   # end
 
-  # def delete(student)
-  # end
+  def delete(id)
+     # ' DELETE FROM posts WHERE id = $1;'
+    #return nothing just delete a record
+  end
 end
 ```
 
@@ -154,7 +158,7 @@ These examples will later be encoded as RSpec tests.
 # EXAMPLES
 
 # 1
-# Get all students
+# Get all posts
 
 repo = PostRepository.new
 
@@ -169,17 +173,48 @@ posts[0].number_of_views # =>  200
 posts[0].account_id # =>  1
 
 # 2
-# Get a single student
+# Get a single post
 
-repo = StudentRepository.new
+repo = PostRepository.new
 
-student = repo.find(1)
+post = repo.find(1)
 
-student.id # =>  1
-student.name # =>  'David'
-student.cohort_name # =>  'April 2022'
+post[0].id # =>  1
+post[0].title # =>  'traveling solo'
+post[0].content # =>  'it amazing'
+post[0].number_of_views # =>  200
+post[0].account_id # =>  2
 
-# Add more examples for each method
+
+# 3
+# adda new post in the DB
+
+repo = PostRepository.new
+
+post = Post.new
+post.title = 'traveling'
+post.content = 'somewhere'
+post.number_of_views = 2
+post.account_id = 2
+
+repo.create(post)
+
+posts = repo.all
+
+post.last.title #=>  'traveling'
+post.last.content #=>  'somewhere'
+
+# 4
+# delete a record from the DB
+
+repo = PostRepository.new
+
+repo.all.length #=> 3
+
+repo.delete(1)
+
+repo.all.length #=> 2
+
 ```
 
 Encode this example as a test.
