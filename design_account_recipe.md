@@ -13,10 +13,10 @@ Otherwise, [follow this recipe to design and create the SQL schema for your tabl
 ```
 # EXAMPLE
 
-Table: students
+Table: accounts
 
 Columns:
-id | name | cohort_name
+id | email_address | username
 ```
 
 ## 2. Create Test SQL seeds
@@ -35,13 +35,14 @@ If seed data is provided (or you already created it), you can skip this step.
 -- so we can start with a fresh state.
 -- (RESTART IDENTITY resets the primary key)
 
-TRUNCATE TABLE students RESTART IDENTITY; -- replace with your own table name.
+TRUNCATE TABLE accounts RESTART IDENTITY; -- replace with your own table name.
 
 -- Below this line there should only be `INSERT` statements.
 -- Replace these statements with your own seed data.
 
-INSERT INTO students (name, cohort_name) VALUES ('David', 'April 2022');
-INSERT INTO students (name, cohort_name) VALUES ('Anna', 'May 2022');
+INSERT INTO accounts (email_address, username) VALUES ('giorgio,gristina91@gmail.com', 'giorgio');
+
+INSERT INTO accounts (email_address, username) VALUES ('simone91@gmail.com', 'simone');
 ```
 
 Run this SQL file on the database to truncate (empty) the table, and insert the seed data. Be mindful of the fact any existing records in the table will be deleted.
@@ -60,12 +61,12 @@ Usually, the Model class name will be the capitalised table name (single instead
 
 # Model class
 # (in lib/student.rb)
-class Student
+class Account
 end
 
 # Repository class
 # (in lib/student_repository.rb)
-class StudentRepository
+class AccountRepository
 end
 ```
 
@@ -80,10 +81,10 @@ Define the attributes of your Model class. You can usually map the table columns
 # Model class
 # (in lib/student.rb)
 
-class Student
+class Account
 
   # Replace the attributes by your own columns.
-  attr_accessor :id, :name, :cohort_name
+  attr_accessor :id, :email_address, :username
 end
 
 # The keyword attr_accessor is a special Ruby feature
@@ -110,36 +111,49 @@ Using comments, define the method signatures (arguments and return value) and wh
 # Repository class
 # (in lib/student_repository.rb)
 
-class StudentRepository
+class AccountRepository
 
   # Selecting all records
   # No arguments
   def all
     # Executes the SQL query:
-    # SELECT id, name, cohort_name FROM students;
+    # SELECT * FROM accounts;
 
-    # Returns an array of Student objects.
+    # Returns an array of Account objects.
   end
 
   # Gets a single record by its ID
   # One argument: the id (number)
   def find(id)
     # Executes the SQL query:
-    # SELECT id, name, cohort_name FROM students WHERE id = $1;
+    # SELECT * FROM accounts WHERE id = $1;
 
-    # Returns a single Student object.
+    # Returns a single Account object.
   end
 
   # Add more methods below for each operation you'd like to implement.
 
-  # def create(student)
-  # end
+  def create(account)
+     # Executes the SQL query:
+    # INSERT INTO accounts VALUES($1, $2, $3);
 
-  # def update(student)
-  # end
+    # Returns nothing just add new record in the account table
 
-  # def delete(student)
-  # end
+  end
+
+  def update(student)
+      # Executes the SQL query:
+    # UPDATE accounts SET email_address = $1, username = $2 WHERE id = $3;
+
+    # Returns nothing it just update a record
+  end
+
+  def delete(id)
+      # Executes the SQL query:
+    # DELETE FROM accounts WHERE id = $1;
+
+    # Returns a single Account object.
+  end
 end
 ```
 
@@ -153,34 +167,59 @@ These examples will later be encoded as RSpec tests.
 # EXAMPLES
 
 # 1
-# Get all students
+# Get all accounts
 
-repo = StudentRepository.new
+repo = AccountRepository.new
 
-students = repo.all
+accounts = repo.all
 
-students.length # =>  2
+accounts.length # =>  2
 
-students[0].id # =>  1
-students[0].name # =>  'David'
-students[0].cohort_name # =>  'April 2022'
-
-students[1].id # =>  2
-students[1].name # =>  'Anna'
-students[1].cohort_name # =>  'May 2022'
+accounts[0].id # =>  1
+accounts[0].email_address # =>  'giorgio,gristina91@gmail.com'
+accounts[0].username # => 'giorgio'
 
 # 2
 # Get a single student
 
-repo = StudentRepository.new
+repo = AccountRepository.new
 
-student = repo.find(1)
+account = repo.find(1)
 
-student.id # =>  1
-student.name # =>  'David'
-student.cohort_name # =>  'April 2022'
+account[0].id # =>  1
+account[0].email_address # =>  'giorgio,gristina91@gmail.com'
+account[0].username # => 'giorgio'
 
-# Add more examples for each method
+
+# 3
+# add a new record into the DB
+
+repo = AccountRepository.new
+
+account = Account.new
+account.email_address = "marco@gmail.com"
+account.username = "marco"
+
+repo.create(account)
+
+accounts = repo.all
+
+accounts.last.email_address #=> "marco@gmail.com"
+accounts.last.username #=> "marco"
+
+# 3
+# add a new record into the DB
+
+repo = AccountRepository.new
+
+repo.delete(1)
+
+accounts = repo.all
+
+accounts.length #=> 2
+repo.find(1) #=> nil
+
+
 ```
 
 Encode this example as a test.
@@ -196,15 +235,15 @@ This is so you get a fresh table contents every time you run the test suite.
 
 # file: spec/student_repository_spec.rb
 
-def reset_students_table
-  seed_sql = File.read('spec/seeds_students.sql')
-  connection = PG.connect({ host: '127.0.0.1', dbname: 'students' })
+def reset_accounts_table
+  seed_sql = File.read('spec/seeds_account.sql')
+  connection = PG.connect({ host: '127.0.0.1', dbname: 'social_network_test' })
   connection.exec(seed_sql)
 end
 
-describe StudentRepository do
+describe AccountRepository do
   before(:each) do 
-    reset_students_table
+    reset_accounts_table
   end
 
   # (your tests will go here).
@@ -218,9 +257,3 @@ _After each test you write, follow the test-driving process of red, green, refac
 <!-- BEGIN GENERATED SECTION DO NOT EDIT -->
 
 ---
-
-**How was this resource?**  
-[😫](https://airtable.com/shrUJ3t7KLMqVRFKR?prefill_Repository=makersacademy%2Fdatabases&prefill_File=resources%2Frepository_class_recipe_template.md&prefill_Sentiment=😫) [😕](https://airtable.com/shrUJ3t7KLMqVRFKR?prefill_Repository=makersacademy%2Fdatabases&prefill_File=resources%2Frepository_class_recipe_template.md&prefill_Sentiment=😕) [😐](https://airtable.com/shrUJ3t7KLMqVRFKR?prefill_Repository=makersacademy%2Fdatabases&prefill_File=resources%2Frepository_class_recipe_template.md&prefill_Sentiment=😐) [🙂](https://airtable.com/shrUJ3t7KLMqVRFKR?prefill_Repository=makersacademy%2Fdatabases&prefill_File=resources%2Frepository_class_recipe_template.md&prefill_Sentiment=🙂) [😀](https://airtable.com/shrUJ3t7KLMqVRFKR?prefill_Repository=makersacademy%2Fdatabases&prefill_File=resources%2Frepository_class_recipe_template.md&prefill_Sentiment=😀)  
-Click an emoji to tell us.
-
-<!-- END GENERATED SECTION DO NOT EDIT -->
